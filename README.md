@@ -245,10 +245,10 @@ class App extends Component {
 export default App;
 ```
 
-Now let's add the opencage API client
+Now add packages dependencies like the opencage API client, and classnames:
 
 ```bash
-$ yarn add opencage-api-client
+$ yarn add opencage-api-client classnames
 ```
 
-And then start the dev server with `$ yarn start`
+We can start the dev server with `$ yarn start`

@@ -33,62 +33,58 @@ class GeocodingResults extends Component {
                 <span>Results</span>
               </a>
             </li>
-            {/* <li>
-              <a
-                href="/"
-                onClick={e => {
-                  e.preventDefault();
-                }}
-              >
-                <span className="icon is-small">
-                  <i className="fas fa-globe-americas" aria-hidden="true" />
-                </span>
-                <span>Map</span>
-              </a>
-            </li> */}
-            <li className={classnames({ 'is-active': isJSONActive })}>
-              <a
-                href="/"
-                onClick={e => {
-                  e.preventDefault();
-                  this.setState({ isJSONActive: true, isResultActive: false });
-                }}
-              >
-                <span className="icon is-small">
-                  <i className="fab fa-js" aria-hidden="true" />
-                </span>
-                <span>JSON Result</span>
-              </a>
-            </li>
+            {results.length > 0 && (
+              <li className={classnames({ 'is-active': isJSONActive })}>
+                <a
+                  href="/"
+                  onClick={e => {
+                    e.preventDefault();
+                    this.setState({
+                      isJSONActive: true,
+                      isResultActive: false,
+                    });
+                  }}
+                >
+                  <span className="icon is-small">
+                    <i className="fab fa-js" aria-hidden="true" />
+                  </span>
+                  <span>JSON Result</span>
+                </a>
+              </li>
+            )}
           </ul>
         </div>
 
         {/* List of results */}
-        {isResultActive && (
-          <article className="message">
-            <div className="message-body">
-              <ol>
-                {results.map((result, index) => {
-                  return (
-                    <li key={index}>
-                      {result.annotations.flag} {result.formatted}
-                      <br />
-                      {result.geometry.lat} {result.geometry.lng}
-                    </li>
-                  );
-                })}
-              </ol>
-            </div>
-          </article>
-        )}
+        {isResultActive &&
+          results.length > 0 && (
+            <article className="message">
+              <div className="message-body">
+                <ol>
+                  {results.map((result, index) => {
+                    return (
+                      <li key={index}>
+                        {result.annotations.flag} {result.formatted}
+                        <br />
+                        <code>
+                          {result.geometry.lat} {result.geometry.lng}
+                        </code>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
+            </article>
+          )}
         {/* JSON result */}
-        {isJSONActive && (
-          <article className="message">
-            <div className="message-body">
-              <pre>{JSON.stringify(this.props.response, null, 2)}</pre>
-            </div>
-          </article>
-        )}
+        {isJSONActive &&
+          results.length > 0 && (
+            <article className="message">
+              <div className="message-body">
+                <pre>{JSON.stringify(this.props.response, null, 2)}</pre>
+              </div>
+            </article>
+          )}
       </div>
     );
   }
