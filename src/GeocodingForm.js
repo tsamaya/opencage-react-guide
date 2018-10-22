@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import './GeocodingForm.css';
 
 class GeocodingForm extends Component {
   constructor(props) {
@@ -63,7 +64,7 @@ class GeocodingForm extends Component {
     const { apikey, isSubmitting, query } = this.props;
     const { isLocating } = this.state;
     return (
-      <div className="box">
+      <div className="box form">
         <form
           onSubmit={e => {
             e.preventDefault();
