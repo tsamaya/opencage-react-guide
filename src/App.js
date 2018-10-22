@@ -13,7 +13,7 @@ class App extends Component {
       query: '',
       apikey: '',
       isSubmitting: false,
-      results: [],
+      response: {},
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -27,11 +27,11 @@ class App extends Component {
       .geocode({ key: this.state.apikey, q: this.state.query })
       .then(response => {
         console.log(response);
-        this.setState({ results: response.results, isSubmitting: false });
+        this.setState({ response, isSubmitting: false });
       })
       .catch(err => {
         console.error(err);
-        this.setState({ results: [], isSubmitting: false });
+        this.setState({ reponse: {}, isSubmitting: false });
       });
   }
 
@@ -55,7 +55,7 @@ class App extends Component {
             />
           </div>
           <div className="column">
-            <GeocodingResults results={this.state.results} />
+            <GeocodingResults response={this.state.response} />
           </div>
         </div>
       </div>
