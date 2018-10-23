@@ -45,7 +45,7 @@ class App extends Component {
         <Header />
 
         <div className="columns">
-          <div className="column is-one-third-widescreen">
+          <div className="column is-one-third-desktop">
             <GeocodingForm
               apikey={this.state.apikey}
               query={this.state.query}
