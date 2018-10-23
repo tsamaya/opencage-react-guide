@@ -245,10 +245,16 @@ class App extends Component {
 export default App;
 ```
 
-Now add packages dependencies like the opencage API client, and classnames:
+Now add packages dependencies like the opencage API client, LeafletJS, and classnames:
 
 ```bash
-$ yarn add opencage-api-client classnames
+$ yarn add opencage-api-client leaflet classnames
 ```
 
+- [opencage-api-client](https://github.com/tsamaya/opencage-api-client) is the client API for Opencage Geocoder API
+- [LeafletJS](https://leafletjs.com/) is the well-known web mapping API
+- [classnames](https://github.com/JedWatson/classnames) is a javascript utility lib to help build className attributes
+
 We can start the dev server with `$ yarn start`
+
+For now the app looks like This
