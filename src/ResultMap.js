@@ -40,24 +40,17 @@ class ResultMap extends Component {
       zoom: 4,
     });
 
-    L.tileLayer(
-      'https://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}{r}.{ext}',
-      {
-        attribution:
-          'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        subdomains: 'abcd',
-        minZoom: 0,
-        maxZoom: 20,
-        ext: 'png',
-      }
-    ).addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
 
     const layer = L.featureGroup().addTo(map);
 
     const { results } = this.props.response;
     for (let i = 0; i < results.length; i++) {
       const marker = L.marker(results[i].geometry, { icon: redIcon });
-      marker.addTo(layer);
+      marker.addTo(layer).bindPopup(i + 1 + ' - ' + results[i].formatted);
     }
 
     map.fitBounds(layer.getBounds());
@@ -67,34 +60,32 @@ class ResultMap extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (prevState.data !== this.props.response.results) {
-      const { results } = this.props.response;
-      if (results && results.length > 0) {
-        const { layer } = this.state;
-        if (layer) {
-          // const redIcon = new RedIcon();
-          layer.clearLayers();
-          for (let i = 0; i < results.length; i++) {
-            const marker = L.marker(results[i].geometry, { icon: redIcon });
-            marker.addTo(layer);
-          }
-          this.state.map.fitBounds(layer.getBounds());
-        }
-      }
-    }
+    // if (prevState.data !== this.props.response.results) {
+    //   const { results } = this.props.response;
+    //   if (results && results.length > 0) {
+    //     const { layer } = this.state;
+    //     if (layer) {
+    //       // const redIcon = new RedIcon();
+    //       layer.clearLayers();
+    //       for (let i = 0; i < results.length; i++) {
+    //         const marker = L.marker(results[i].geometry, { icon: redIcon });
+    //         marker.addTo(layer);
+    //       }
+    //       this.state.map.fitBounds(layer.getBounds());
+    //     }
+    //   }
+    // }
   }
 
   render() {
     // const results = this.props.response.results || [];
 
     return (
-      <article className="message">
-        <div
-          ref={node => (this.mapNode = node)}
-          id="map"
-          data={this.props.data}
-        />
-      </article>
+      <div
+        ref={node => (this.mapNode = node)}
+        id="map"
+        data={this.props.data}
+      />
     );
   }
 }
