@@ -1,90 +1,75 @@
 import React, { Component } from 'react';
 import classnames from 'classnames';
 
+import ResultList from './ResultList';
+import ResultJSON from './ResultJSON';
+import ResultMap from './ResultMap';
+
 import './GeocodingResults.css';
+
+const RESULT_TAB = 'RESULT_TAB';
+const MAP_TAB = 'MAP_TAB';
+const JSON_TAB = 'JSON_TAB';
 
 class GeocodingResults extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isResultActive: true,
-      isJSONActive: false,
+      activeTab: RESULT_TAB,
     };
   }
+
+  renderTab(title, tab, icon, activeTab) {
+    return (
+      <li className={classnames({ 'is-active': activeTab === tab })}>
+        <a
+          href="/"
+          onClick={e => {
+            e.preventDefault();
+            this.setState({
+              activeTab: tab,
+            });
+          }}
+        >
+          <span className="icon is-small">
+            <i className={icon} aria-hidden="true" />
+          </span>
+          <span>{title}</span>
+        </a>
+      </li>
+    );
+  }
+
   render() {
-    const { isResultActive, isJSONActive } = this.state;
+    const { activeTab } = this.state;
     const results = this.props.response.results || [];
 
     return (
       <div className="box results">
         <div className="tabs is-boxed vh">
           <ul>
-            <li className={classnames({ 'is-active': isResultActive })}>
-              <a
-                href="/"
-                onClick={e => {
-                  e.preventDefault();
-                  this.setState({ isJSONActive: false, isResultActive: true });
-                }}
-              >
-                <span className="icon is-small">
-                  <i className="fas fa-list-ul" aria-hidden="true" />
-                </span>
-                <span>Results</span>
-              </a>
-            </li>
-            {results.length > 0 && (
-              <li className={classnames({ 'is-active': isJSONActive })}>
-                <a
-                  href="/"
-                  onClick={e => {
-                    e.preventDefault();
-                    this.setState({
-                      isJSONActive: true,
-                      isResultActive: false,
-                    });
-                  }}
-                >
-                  <span className="icon is-small">
-                    <i className="fab fa-js" aria-hidden="true" />
-                  </span>
-                  <span>JSON Result</span>
-                </a>
-              </li>
-            )}
+            {this.renderTab('Results', RESULT_TAB, 'fas fa-list-ul', activeTab)}
+            {results.length > 0 &&
+              this.renderTab(
+                'Map',
+                MAP_TAB,
+                'fas fa-globe-americas',
+                activeTab
+              )}
+            {results.length > 0 &&
+              this.renderTab('JSON Result', JSON_TAB, 'fab fa-js', activeTab)}
           </ul>
         </div>
 
         {/* List of results */}
-        {isResultActive &&
-          results.length > 0 && (
-            <article className="message">
-              <div className="message-body">
-                <ol>
-                  {results.map((result, index) => {
-                    return (
-                      <li key={index}>
-                        {result.annotations.flag} {result.formatted}
-                        <br />
-                        <code>
-                          {result.geometry.lat} {result.geometry.lng}
-                        </code>
-                      </li>
-                    );
-                  })}
-                </ol>
-              </div>
-            </article>
-          )}
+        {activeTab === RESULT_TAB &&
+          results.length > 0 && <ResultList response={this.props.response} />}
         {/* JSON result */}
-        {isJSONActive &&
-          results.length > 0 && (
-            <article className="message">
-              <div className="message-body">
-                <pre>{JSON.stringify(this.props.response, null, 2)}</pre>
-              </div>
-            </article>
-          )}
+        {activeTab === JSON_TAB &&
+          results.length > 0 && <ResultJSON response={this.props.response} />}
+        {/* MAP result */}
+        {activeTab === MAP_TAB &&
+          results.length > 0 && <ResultMap response={this.props.response} />}
       </div>
     );
   }
