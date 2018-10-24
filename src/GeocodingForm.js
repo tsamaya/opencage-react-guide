@@ -111,7 +111,7 @@ class GeocodingForm extends Component {
               <div className="help">
                 Address, place name
                 <br />
-                Corrdinates as <code>latitude, longitudde</code> or{' '}
+                Coordinates as <code>latitude, longitude</code> or{' '}
                 <code>y, x</code>.
               </div>
             </div>
