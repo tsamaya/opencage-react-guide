@@ -1,6 +1,6 @@
 pre {
   overflow: hidden;
-  max-width: 600px;
+  /* max-width: 600px; */
   /* text-overflow: ellipsis; */
   white-space: pre-wrap;
   word-wrap: break-word;
