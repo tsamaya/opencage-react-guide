@@ -9,8 +9,9 @@ class ResultList extends Component {
       <article className="message">
         <div className="message-body">
           <p>
-            remaining {rate.remaining} out of {rate.limit} requests
+            Remaining {rate.remaining} out of {rate.limit} requests
           </p>
+          <p>&nbsp;</p>
           <ol>
             {results.map((result, index) => {
               return (
