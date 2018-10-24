@@ -77,6 +77,10 @@ We suggest that you begin by typing:
 Happy hacking!
 ```
 
+## Start hacking
+
+### First part
+
 Let's do the suggested commands
 
 <!--  -->
@@ -184,7 +188,7 @@ Rename `App.css` into `Header.css`. Then edit `Header.css`, we will avoid being 
 }
 ```
 
-Edit `Header.js`:
+Edit `./src/Header.js`:
 
 ```js
 // ./src/Header.js
@@ -208,7 +212,7 @@ class Header extends Component {
 export default Header;
 ```
 
-Edit `index.js`, adding
+Edit `./src/index.js`, adding
 
 ```js
 import 'bulma/css/bulma.css';
@@ -220,7 +224,7 @@ after
 import './index.css';
 ```
 
-now edit `App.js`
+now edit `App.js`, we first use the `Header` Component and then we prepare 2 columns.
 
 ```js
 import React, { Component } from 'react';
@@ -257,4 +261,401 @@ $ yarn add opencage-api-client leaflet classnames
 
 We can start the dev server with `$ yarn start`
 
-For now the app looks like This
+For now the app looks like this
+
+![devstart](./resources/screenshot-1.png)
+
+In the first column we will set up the form with the search input parameters. In the second column, we will have the results as multiple tabs, starting with the readable results (formatted address and coordinates), and a second tab with the raw JSON result from the API. As you can see in the following design we will create two main components and `GeocodingForm` and `GeocodingResults`
+
+![design](./resources/design-1.png)
+
+create a file `./src/GeocodingForm.js`
+
+```js
+import React, { Component } from 'react';
+
+class GeocodingForm extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isLocating: false,
+    };
+    this.handleGeoLocation = this.handleGeoLocation.bind(this);
+    this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleSubmit = props.onSubmit;
+  }
+
+  handleGeoLocation() {
+    const geolocation = navigator.geolocation;
+    const p = new Promise((resolve, reject) => {
+      if (!geolocation) {
+        reject(new Error('Not Supported'));
+      }
+      this.setState({
+        isLocating: true,
+      });
+
+      geolocation.getCurrentPosition(
+        position => {
+          console.log('Location found');
+          resolve(position);
+        },
+        () => {
+          console.log('Location : Permission denied');
+          reject(new Error('Permission denied'));
+        }
+      );
+    });
+    p.then(location => {
+      this.setState({
+        isLocating: false,
+      });
+      this.props.onChange(
+        'query',
+        location.coords.latitude + ', ' + location.coords.longitude
+      );
+    });
+  }
+
+  handleInputChange(event) {
+    const { target } = event;
+    const { name } = target;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    // console.log(name, value);
+    // this.setState({
+    //   [name]: value,
+    // });
+    this.props.onChange(name, value);
+  }
+
+  handleSubmit(event) {
+    console.log('Form was submitted with state: ', this.state);
+    event.preventDefault();
+  }
+
+  render() {
+    const { apikey, isSubmitting, query } = this.props;
+    const { isLocating } = this.state;
+    return (
+      <div className="box form">
+        <form
+          onSubmit={e => {
+            e.preventDefault();
+          }}
+        >
+          {/* <!-- API KEY --> */}
+          <div className="field">
+            <label className="label">API key</label>
+            <div className="control has-icons-left">
+              <span className="icon is-small is-left">
+                <i className="fas fa-lock" />
+              </span>
+              <input
+                name="apikey"
+                className="input"
+                type="text"
+                placeholder="YOUR-API-KEY"
+                value={apikey}
+                onChange={this.handleInputChange}
+              />
+            </div>
+            <div className="help">
+              Your OpenCage Geocoder API Key (
+              <a href="https://opencagedata.com/users/sign_up">register</a>
+              ).
+            </div>
+          </div>
+          {/* <!-- ./API KEY --> */}
+          {/* <!-- Query --> */}
+          <div className="field">
+            <label className="label">Address or Coordinates</label>
+            <div className="control has-icons-left">
+              <span className="icon is-small is-left">
+                <i className="fas fa-map-marked-alt" />
+              </span>
+              <input
+                name="query"
+                className="input"
+                type="text"
+                placeholder="location"
+                value={query}
+                onChange={this.handleInputChange}
+              />
+              <div className="help">
+                Address, place name
+                <br />
+                Coordinates as <code>latitude, longitude</code> or{' '}
+                <code>y, x</code>.
+              </div>
+            </div>
+          </div>
+          {/* <!-- ./Query --> */}
+
+          <div className="field">
+            <label className="label">Show my location</label>
+            <div className="control" onClick={this.handleGeoLocation}>
+              {!isLocating && (
+                <button className="button is-static">
+                  <span className="icon is-small">
+                    <i className="fas fa-location-arrow" />
+                  </span>
+                </button>
+              )}
+              {isLocating && (
+                <button className="button is-static">
+                  <span className="icon is-small">
+                    <i className="fas fa-spinner fa-pulse" />
+                  </span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* <!-- Button Geocode --> */}
+          <button
+            className="button is-success"
+            onClick={this.handleSubmit}
+            disabled={isLocating || isSubmitting}
+          >
+            Geocode
+          </button>
+          {/* <!-- ./Button Geocode --> */}
+        </form>
+      </div>
+    );
+  }
+}
+
+export default GeocodingForm;
+```
+
+then create a file `./src/GeocodingResults.js`
+
+```js
+import React, { Component } from 'react';
+import classnames from 'classnames';
+
+import ResultList from './ResultList';
+import ResultJSON from './ResultJSON';
+
+const RESULT_TAB = 'RESULT_TAB';
+const JSON_TAB = 'JSON_TAB';
+
+class GeocodingResults extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      activeTab: RESULT_TAB,
+    };
+  }
+
+  renderTab(title, tab, icon, activeTab) {
+    return (
+      <li className={classnames({ 'is-active': activeTab === tab })}>
+        <a
+          href="/"
+          onClick={e => {
+            e.preventDefault();
+            this.setState({
+              activeTab: tab,
+            });
+          }}
+        >
+          <span className="icon is-small">
+            <i className={icon} aria-hidden="true" />
+          </span>
+          <span>{title}</span>
+        </a>
+      </li>
+    );
+  }
+
+  render() {
+    const { activeTab } = this.state;
+    const results = this.props.response.results || [];
+
+    return (
+      <div className="box results">
+        <div className="tabs is-boxed vh">
+          <ul>
+            {this.renderTab('Results', RESULT_TAB, 'fas fa-list-ul', activeTab)}
+            {results.length > 0 &&
+              this.renderTab('JSON Result', JSON_TAB, 'fab fa-js', activeTab)}
+          </ul>
+        </div>
+
+        {/* List of results */}
+        {activeTab === RESULT_TAB &&
+          results.length > 0 && <ResultList response={this.props.response} />}
+        {/* JSON result */}
+        {activeTab === JSON_TAB &&
+          results.length > 0 && <ResultJSON response={this.props.response} />}
+      </div>
+    );
+  }
+}
+
+export default GeocodingResults;
+```
+
+We need to create files `./src/ResultList.js` and `./src/ResultJSON.js`
+
+```
+// ./src/ResultList.js
+import React, { Component } from 'react';
+
+class ResultList extends Component {
+  render() {
+    const rate = this.props.response.rate || {};
+    const results = this.props.response.results || [];
+
+    return (
+      <article className="message">
+        <div className="message-body">
+          <ol>
+            {results.map((result, index) => {
+              return (
+                <li key={index}>
+                  {result.annotations.flag} {result.formatted}
+                  <br />
+                  <code>
+                    {result.geometry.lat} {result.geometry.lng}
+                  </code>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      </article>
+    );
+  }
+}
+
+export default ResultList;
+```
+
+```js
+// ./src/ResultJSON.js
+import React, { Component } from 'react';
+
+import './ResultJSON.css';
+
+class ResultJSON extends Component {
+  render() {
+    return (
+      <article className="message">
+        <div className="message-body">
+          <pre>{JSON.stringify(this.props.response, null, 2)}</pre>
+        </div>
+      </article>
+    );
+  }
+}
+
+export default ResultJSON;
+```
+
+To finish the first part wire the application with those two main components (GeocodingForm and GeocodingResults)
+
+Edit the `./src/App.js` file, first the imports:
+
+```js
+import React, { Component } from 'react';
+
+import Header from './Header';
+import GeocodingForm from './GeocodingForm';
+import GeocodingResults from './GeocodingResults';
+
+import * as opencage from 'opencage-api-client';
+```
+
+now add a constructor
+
+```js
+constructor(props) {
+  super(props);
+  this.state = {
+    query: '',
+    apikey: '',
+    isSubmitting: false,
+    response: {},
+  };
+
+  this.handleSubmit = this.handleSubmit.bind(this);
+  this.handleChange = this.handleChange.bind(this);
+}
+```
+
+the App handles input text changes and the submit.
+
+So first add the `handleChange` method
+
+```js
+handleChange(key, value) {
+  this.setState({ [key]: value });
+}
+```
+
+Followed by the `handleSubmit` method
+
+```js
+handleSubmit(event) {
+  event.preventDefault();
+  this.setState({ isSubmitting: true });
+  opencage
+    .geocode({ key: this.state.apikey, q: this.state.query })
+    .then(response => {
+      console.log(response);
+      this.setState({ response, isSubmitting: false });
+    })
+    .catch(err => {
+      console.error(err);
+      this.setState({ response: {}, isSubmitting: false });
+    });
+}
+```
+
+Last touch for this first part, we add the main components in the `render` method:
+
+```js
+render() {
+  return (
+    <div>
+      <Header />
+
+      <div className="columns">
+        <div className="column is-one-third-desktop">
+          <GeocodingForm
+            apikey={this.state.apikey}
+            query={this.state.query}
+            isSubmitting={this.state.isSubmitting}
+            onSubmit={this.handleSubmit}
+            onChange={this.handleChange}
+          />
+        </div>
+        <div className="column">
+          <GeocodingResults response={this.state.response} />
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+Here is what the app now looks like
+
+![screen2](./resources/screenshot-2.png)
+
+### Second part
+
+In this part we will add a map tab
+
+to be continued
+
+# Resources
+
+# Licensing
+
+Licensed under the MIT License
+
+A copy of the license is available in the repository's [LICENSE](LICENSE) file.
