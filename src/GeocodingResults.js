@@ -62,14 +62,17 @@ class GeocodingResults extends Component {
         </div>
 
         {/* List of results */}
-        {activeTab === RESULT_TAB &&
-          results.length > 0 && <ResultList response={this.props.response} />}
+        {activeTab === RESULT_TAB && results.length > 0 && (
+          <ResultList response={this.props.response} />
+        )}
         {/* JSON result */}
-        {activeTab === JSON_TAB &&
-          results.length > 0 && <ResultJSON response={this.props.response} />}
+        {activeTab === JSON_TAB && results.length > 0 && (
+          <ResultJSON response={this.props.response} />
+        )}
         {/* MAP result */}
-        {activeTab === MAP_TAB &&
-          results.length > 0 && <ResultMap response={this.props.response} />}
+        {activeTab === MAP_TAB && results.length > 0 && (
+          <ResultMap response={this.props.response} />
+        )}
       </div>
     );
   }
